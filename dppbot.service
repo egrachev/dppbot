@@ -1,0 +1,15 @@
+# /usr/lib/systemd/system/dppbot.service
+[Unit]
+Description=DPP bot service
+
+[Service]
+Type=simple
+
+WorkingDirectory=/opt/dppbot
+ExecStart=/opt/dppbot/dppbot
+EnvironmentFile=/opt/dppbot/env
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
