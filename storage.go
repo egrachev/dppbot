@@ -2,14 +2,17 @@ package main
 
 import (
 	"bufio"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"time"
 )
 
-const filename string = "links.txt"
+const links_filename string = "links.txt"
 const write_flags int = os.O_APPEND | os.O_WRONLY | os.O_CREATE
 const read_flags int = os.O_RDONLY | os.O_CREATE
-const perms = 0600
+const links_perms = 0600
 
 type Storage struct{}
 
@@ -20,7 +23,7 @@ func (s Storage) getTitle(url string) string {
 }
 
 func (s Storage) SaveLink(url string) {
-	f, err := os.OpenFile(filename, write_flags, perms)
+	f, err := os.OpenFile(links_filename, write_flags, links_perms)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +43,7 @@ func (s Storage) SaveLink(url string) {
 func (s Storage) GetLinks(count int) []string {
 	var links []string
 
-	f, err := os.OpenFile(filename, read_flags, perms)
+	f, err := os.OpenFile(links_filename, read_flags, links_perms)
 	if err != nil {
 		panic(err)
 	}
@@ -57,9 +60,27 @@ func (s Storage) GetLinks(count int) []string {
 	return links
 }
 
+func (s Storage) Backup() {
+	input, err := ioutil.ReadFile(links_filename)
+	if err != nil {
+		fmt.Println("Error read links file", links_filename)
+		fmt.Println(err)
+	}
+
+	now := time.Now()
+	links_backup := links_filename + "." + now.Format("20060102150405")
+	err = ioutil.WriteFile(links_backup, input, links_perms)
+	fmt.Println("Create backup", links_backup)
+	if err != nil {
+		fmt.Println("Error creating", links_backup)
+		fmt.Println(err)
+	}
+}
+
 func (s Storage) Clear() {
-	e := os.Truncate(filename, 0)
-	log.Printf("Clear '%s'", filename)
+	s.Backup()
+	e := os.Truncate(links_filename, 0)
+	log.Printf("Clear '%s'", links_filename)
 	if e != nil {
 		log.Fatal(e)
 	}
