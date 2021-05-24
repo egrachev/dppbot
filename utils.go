@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/charset"
 )
 
 func download(url string) string {
@@ -18,7 +19,13 @@ func download(url string) string {
 	}
 	defer response.Body.Close()
 
-	if b, err := io.ReadAll(response.Body); err == nil {
+	utf8, err := charset.NewReader(response.Body, response.Header.Get("Content-Type"))
+	if err != nil {
+		fmt.Println("Encoding error:", err)
+		return ""
+	}
+
+	if b, err := io.ReadAll(utf8); err == nil {
 		return string(b)
 	}
 
