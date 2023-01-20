@@ -14,10 +14,16 @@ func download(url string) string {
 	fmt.Println("Downloading ", url)
 
 	response, err := http.Get(url)
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic("Link downloading error")
+		}
+	}(response.Body)
+
 	if err != nil {
 		return ""
 	}
-	defer response.Body.Close()
 
 	utf8, err := charset.NewReader(response.Body, response.Header.Get("Content-Type"))
 	if err != nil {
@@ -52,31 +58,18 @@ func title(HTMLString string) (title string) {
 		case tt == html.StartTagToken:
 			t := z.Token()
 
-			// Check if the token is an <title> tag
+			// Check if the token is an <Title> tag
 			if t.Data != "title" {
 				continue
 			}
 
-			// fmt.Printf("%+v\n%v\n%v\n%v\n", t, t, t.Type.String(), t.Attr)
 			tt := z.Next()
 
 			if tt == html.TextToken {
 				t := z.Token()
 				title = t.Data
 				return
-				// fmt.Printf("%+v\n%v\n", t, t.Data)
 			}
 		}
 	}
 }
-
-// func reverse(str string) string {
-// 	r := []rune(str)
-// 	var res []rune
-
-// 	for i := len(r) - 1; i >= 0; i-- {
-// 		res = append(res, r[i])
-// 	}
-
-// 	return string(res)
-// }
